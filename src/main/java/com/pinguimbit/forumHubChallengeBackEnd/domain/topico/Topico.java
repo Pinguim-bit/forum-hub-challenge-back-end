@@ -48,4 +48,9 @@ public class Topico {
         this.autor = autor;
         this.curso = curso;
     }
+
+    public void atualizarTopico(@Valid AtualizarTopicoDTO dados) {
+        this.titulo = dados.titulo();
+        this.mensagem = dados.mensagem();
+    }
 }

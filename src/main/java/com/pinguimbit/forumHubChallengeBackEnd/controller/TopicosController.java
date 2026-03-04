@@ -1,20 +1,20 @@
 package com.pinguimbit.forumHubChallengeBackEnd.controller;
 
 import com.pinguimbit.forumHubChallengeBackEnd.domain.curso.CursoRepository;
-import com.pinguimbit.forumHubChallengeBackEnd.domain.topico.CadastroTopicoDTO;
-import com.pinguimbit.forumHubChallengeBackEnd.domain.topico.DetalharTopicoDTO;
-import com.pinguimbit.forumHubChallengeBackEnd.domain.topico.Topico;
-import com.pinguimbit.forumHubChallengeBackEnd.domain.topico.TopicoRepository;
+import com.pinguimbit.forumHubChallengeBackEnd.domain.topico.*;
+import com.pinguimbit.forumHubChallengeBackEnd.domain.topico.validacoes.ValidarAtualizacaoTopico;
+import com.pinguimbit.forumHubChallengeBackEnd.domain.topico.validacoes.ValidarCriacaoTopico;
 import com.pinguimbit.forumHubChallengeBackEnd.domain.usuario.PerfilRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @RequestMapping("/topicos")
@@ -25,10 +25,16 @@ public class TopicosController {
     private PerfilRepository perfilRepository;
     @Autowired
     private CursoRepository cursoRepository;
+    @Autowired
+    private ValidarCriacaoTopico validarCriacaoTopico;
+    @Autowired
+    private ValidarAtualizacaoTopico validarAtualizacaoTopico;
 
     @PostMapping
     @Transactional
-    public ResponseEntity cadastrarTopico(@RequestBody @Valid CadastroTopicoDTO dados, UriComponentsBuilder uriBuilder){
+    public ResponseEntity<?> cadastrarTopico(@RequestBody @Valid CadastroTopicoDTO dados) {
+        validarCriacaoTopico.validar(dados);
+
         var autor = perfilRepository.getReferenceById(dados.autor_id());
         var curso = cursoRepository.getReferenceById(dados.curso_id());
 
@@ -39,11 +45,47 @@ public class TopicosController {
     }
 
     @GetMapping
-    public ResponseEntity<?> listarTopicos(){
-        var topicos = repository.findAll();
-        List<DetalharTopicoDTO> dto  = new ArrayList<>();
-        topicos.forEach(t -> dto.add(new DetalharTopicoDTO(t)));
+    public ResponseEntity<Page<DetalharTopicoDTO>> listarTopicos(
+            @PageableDefault(size = 10, sort = {"dataCriacao"}, direction = Sort.Direction.DESC)
+            Pageable paginacao) {
+        //na sugestão do trello pediu em ordem ASC
+        // mas me parece mais vantajoso ordenar pelo mais recente
+        //então ficou em DESC
+        var page = repository.findAll(paginacao).map(DetalharTopicoDTO::new);
 
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(page);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> detalharTopico(@PathVariable Long id) {
+
+        var topico = repository.findById(id).orElseThrow(() ->
+                new EntityNotFoundException("Tópico não encontrado!"));
+
+        return ResponseEntity.ok(new DetalharTopicoDTO(topico));
+    }
+
+    @PutMapping("/{id}")
+    @Transactional
+    public ResponseEntity<?> atualizarTopico(@PathVariable Long id, @RequestBody @Valid AtualizarTopicoDTO dados) {
+        validarAtualizacaoTopico.validar(dados);
+
+        var topico = repository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Tópico não encontrado!")
+        );
+
+        topico.atualizarTopico(dados);
+        return ResponseEntity.ok("Tópico atualizado com sucesso!");
+    }
+
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity<?> deletarTopico(@PathVariable Long id) {
+
+        if(!repository.existsById(id))
+            throw new EntityNotFoundException("Não foi possível excluir: Tópico não encontrado!");
+
+        repository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }
