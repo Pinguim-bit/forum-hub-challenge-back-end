@@ -1,12 +1,13 @@
 package com.pinguimbit.forumHubChallengeBackEnd.domain.usuario;
 
-import org.springframework.data.domain.Page;
+import java.util.List;
 
 public record ListarUsuariosDTO(
         String nome,
-        String email
+        String email,
+        List<Long> id_perfil
 ) {
-    public ListarUsuariosDTO (Usuario dados) {
-        this(dados.getNome(), dados.getEmail());
+    public ListarUsuariosDTO(Usuario dados) {
+        this(dados.getNome(), dados.getEmail(), dados.getPerfis().stream().map(Perfil::getId).toList());
     }
 }

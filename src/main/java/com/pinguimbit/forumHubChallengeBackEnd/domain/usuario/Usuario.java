@@ -9,11 +9,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,7 +37,6 @@ public class Usuario implements UserDetails {
     private String senha;
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
-    //@JoinColumn(name = "usuario_id")
     private List<Perfil> perfis = new ArrayList<>();
 
     public Usuario(CriarUsuarioDTO dados, String senha) {
@@ -47,7 +44,8 @@ public class Usuario implements UserDetails {
         this.email = dados.email();
         this.senha = senha;
     }
-    public void adicionarPerfil (Perfil perfil) {
+
+    public void adicionarPerfil(Perfil perfil) {
         this.perfis.add(perfil);
     }
 

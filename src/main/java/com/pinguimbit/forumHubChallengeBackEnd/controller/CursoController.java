@@ -10,8 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
 @SecurityRequirement(name = "bearer-key")
 @RestController
 @RequestMapping("/cursos")
@@ -29,13 +27,7 @@ public class CursoController {
 
     @GetMapping
     public ResponseEntity<?> listarCurso() {
-        var rawCursos = repository.findAll();
-        List<ListarCursosDTO> listaCursos = new ArrayList<>();
-        for (Curso curso : rawCursos) {
-            listaCursos.add(new ListarCursosDTO(curso));
-        }
-        String mensagem = "Lista de cursos disponíveis:\n" +  listaCursos;
-
-        return ResponseEntity.ok(mensagem);
+        var cursos = repository.findAll();
+        return ResponseEntity.ok(cursos.stream().map(ListarCursosDTO::new));
     }
 }
