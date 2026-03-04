@@ -7,6 +7,13 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,7 +25,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
-public class Usuario {
+public class Usuario implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -31,16 +38,59 @@ public class Usuario {
     @NotBlank
     private String senha;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "usuario_id")
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
+    //@JoinColumn(name = "usuario_id")
     private List<Perfil> perfis = new ArrayList<>();
 
-    public Usuario(CriarUsuarioDTO dados) {
+    public Usuario(CriarUsuarioDTO dados, String senha) {
         this.nome = dados.nome();
         this.email = dados.email();
-        this.senha = dados.senha();
+        this.senha = senha;
     }
     public void adicionarPerfil (Perfil perfil) {
         this.perfis.add(perfil);
+    }
+
+    @NullMarked
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_USER"));
+    }
+
+    @Override
+    public @Nullable String getPassword() {
+        return senha;
+    }
+
+    @NullMarked
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    public void updateUsuario(AtualizarUsuarioDTO dados, String senha) {
+        this.nome = dados.nome();
+        this.email = dados.email();
+        this.senha = senha;
     }
 }

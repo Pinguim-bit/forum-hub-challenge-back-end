@@ -7,6 +7,7 @@ import com.pinguimbit.forumHubChallengeBackEnd.domain.usuario.UsuarioRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,11 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class CriarContaController {
     @Autowired
     private UsuarioRepository usuarioRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @PostMapping
     public ResponseEntity<?> criarUsuario(@RequestBody @Valid CriarUsuarioDTO dados) {
 
-        var usuario = new Usuario(dados);
+        var usuario = new Usuario(dados, passwordEncoder.encode(dados.senha()));
         var perfil = new Perfil(usuario);
         usuario.adicionarPerfil(perfil);
 

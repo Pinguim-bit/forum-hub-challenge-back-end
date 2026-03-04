@@ -5,6 +5,7 @@ import com.pinguimbit.forumHubChallengeBackEnd.domain.topico.*;
 import com.pinguimbit.forumHubChallengeBackEnd.domain.topico.validacoes.ValidarAtualizacaoTopico;
 import com.pinguimbit.forumHubChallengeBackEnd.domain.topico.validacoes.ValidarCriacaoTopico;
 import com.pinguimbit.forumHubChallengeBackEnd.domain.usuario.PerfilRepository;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+@SecurityRequirement(name = "bearer-key")
 @RestController
 @RequestMapping("/topicos")
 public class TopicosController {
